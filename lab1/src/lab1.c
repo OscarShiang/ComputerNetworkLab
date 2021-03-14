@@ -11,8 +11,8 @@
 #include <time.h>
 #include <unistd.h>
 
-#include "utils.h"
 #include "file_trans.h"
+#include "utils.h"
 
 static int protocol;
 static int func;
@@ -65,7 +65,7 @@ int main(int argc, char *argv[])
 
     // bind the address and start to send / receive
     if (func == SEND) {
-	int clientfd;
+        int clientfd;
 
         addr.sin_addr.s_addr = INADDR_ANY;
 
@@ -74,41 +74,42 @@ int main(int argc, char *argv[])
             exit(-1);
         }
 
-	if (protocol == TCP) {
-	    DEBUG("listen from socket\n");
-	    if (listen(sockfd, 5) < 0) {
-		perror("[Error] Failed to listen\n");
-		exit(-1);
-	    }
+        if (protocol == TCP) {
+            DEBUG("listen from socket\n");
+            if (listen(sockfd, 5) < 0) {
+                perror("[Error] Failed to listen\n");
+                exit(-1);
+            }
 
-	    // accept the incoming connection
-	    struct sockaddr_in clientaddr;
-	    socklen_t inlen = 1;
-	    clientfd = accept(sockfd, (struct sockaddr *) &clientaddr, &inlen);
-	    if (clientfd < 0) {
-		perror("[Error] Acception failed\n");
-		exit(-1);
-	    }
-	} else {
-	    // for UDP case
-	    DEBUG("wait for connction\n");
-	    int inlen = sizeof(struct sockaddr);
+            // accept the incoming connection
+            struct sockaddr_in clientaddr;
+            socklen_t inlen = 1;
+            clientfd = accept(sockfd, (struct sockaddr *) &clientaddr, &inlen);
+            if (clientfd < 0) {
+                perror("[Error] Acception failed\n");
+                exit(-1);
+            }
+        } else {
+            // for UDP case
+            DEBUG("wait for connction\n");
+            int inlen = sizeof(struct sockaddr);
 
-	    char buf[4];
-	    int ret = recvfrom(sockfd, buf, 16, 0, (struct sockaddr *)&addr, &inlen);
-	    if (ret < 0) {
-		perror("[Error] Wrong starting header\n");
-		exit(-1);
-	    }
-	    buf[ret] = '\0';
-	    printf("test: %s\n", buf);
-	    if (strcmp(buf, UDP_START)) {
-		perror("[Error] Wrong starting header\n");
-		exit(-1);
-	    }
-	    clientfd = sockfd;
-	    DEBUG("Received client start\n");
-	}
+            char buf[4];
+            int ret =
+                recvfrom(sockfd, buf, 16, 0, (struct sockaddr *) &addr, &inlen);
+            if (ret < 0) {
+                perror("[Error] Wrong starting header\n");
+                exit(-1);
+            }
+            buf[ret] = '\0';
+            printf("test: %s\n", buf);
+            if (strcmp(buf, UDP_START)) {
+                perror("[Error] Wrong starting header\n");
+                exit(-1);
+            }
+            clientfd = sockfd;
+            DEBUG("Received client start\n");
+        }
 
         // read the file size
         struct stat statbuf;
@@ -123,62 +124,65 @@ int main(int argc, char *argv[])
         };
         strcmp(file.name, argv[5]);
 
-	DEBUG("start to send the file\n");
-	int fd = open(argv[5], O_RDONLY);
+        DEBUG("start to send the file\n");
+        int fd = open(argv[5], O_RDONLY);
 
-	if (protocol == TCP) {
-	    // send file info
-	    write(clientfd, &file, sizeof(file));
+        if (protocol == TCP) {
+            // send file info
+            write(clientfd, &file, sizeof(file));
 
-	    // send the data
-	    if (tcp_transfer(fd, clientfd, file.size) < 0)
-		perror("[Error] Transfer failed\n");
-	} else {
-	    // send file info
-	    sendto(clientfd, &file, sizeof(file), 0, (struct sockaddr *)&addr, sizeof(addr));
+            // send the data
+            if (tcp_transfer(fd, clientfd, file.size) < 0)
+                perror("[Error] Transfer failed\n");
+        } else {
+            // send file info
+            sendto(clientfd, &file, sizeof(file), 0, (struct sockaddr *) &addr,
+                   sizeof(addr));
 
-	    // for UDP case
-	    DEBUG("start to transfer file by UDP\n");
-	    if (udp_transfer(fd, clientfd, file.size, SEND, addr) < 0)
-		perror("[Error] Transfer failed\n");
-	}
-	// close the fds
-	close(clientfd);
-	close(fd);
+            // for UDP case
+            DEBUG("start to transfer file by UDP\n");
+            if (udp_transfer(fd, clientfd, file.size, SEND, addr) < 0)
+                perror("[Error] Transfer failed\n");
+        }
+        // close the fds
+        close(clientfd);
+        close(fd);
     } else {
-	// RECV functionality
-	DEBUG("connect to the server\n");
-	if (protocol == TCP) {
-	    // connect to the server
-	    int ret = connect(sockfd, (struct sockaddr *) &addr, sizeof(addr));
-	    if (ret < 0) {
-		perror("[Error] Connection failed\n");
-		exit(-1);
-	    }
-	} else {
-	    // send UDP starting header
-	    if (sendto(sockfd, UDP_START, 2, 0, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
-		perror("[Error] Failed to send starting header\n");
-		exit(-1);
-	    }
-	    DEBUG("client hello sended\n");
-	}
-	
+        // RECV functionality
+        DEBUG("connect to the server\n");
+        if (protocol == TCP) {
+            // connect to the server
+            int ret = connect(sockfd, (struct sockaddr *) &addr, sizeof(addr));
+            if (ret < 0) {
+                perror("[Error] Connection failed\n");
+                exit(-1);
+            }
+        } else {
+            // send UDP starting header
+            if (sendto(sockfd, UDP_START, 2, 0, (struct sockaddr *) &addr,
+                       sizeof(addr)) < 0) {
+                perror("[Error] Failed to send starting header\n");
+                exit(-1);
+            }
+            DEBUG("client hello sended\n");
+        }
+
         // get file info
         file_info_t file;
-	if (protocol == TCP) {
-	    if (read(sockfd, &file, sizeof(file)) < 0) {
-		perror("[Error] Failed to receive the meta data\n");
-		exit(-1);
-	    }
-	} else {
-	    int inlen = sizeof(struct sockaddr);
-	    DEBUG("wait for file info\n");
-	    if (recvfrom(sockfd, &file, sizeof(file), 0, (struct sockaddr *)&addr, &inlen) < 0) {
-		perror("[Error] Failed to receive the meta data\n");
-		exit(-1);
-	    }
-	}
+        if (protocol == TCP) {
+            if (read(sockfd, &file, sizeof(file)) < 0) {
+                perror("[Error] Failed to receive the meta data\n");
+                exit(-1);
+            }
+        } else {
+            int inlen = sizeof(struct sockaddr);
+            DEBUG("wait for file info\n");
+            if (recvfrom(sockfd, &file, sizeof(file), 0,
+                         (struct sockaddr *) &addr, &inlen) < 0) {
+                perror("[Error] Failed to receive the meta data\n");
+                exit(-1);
+            }
+        }
 
         // open file
         int fd = open(argv[5], O_WRONLY | O_CREAT, 0755);
@@ -190,13 +194,13 @@ int main(int argc, char *argv[])
 
         // receive the data
         DEBUG("start to transfer the data\n");
-	if (protocol == TCP) {
-	    if (tcp_transfer(sockfd, fd, file.size) < 0)
-		perror("[Error] Transfer failed\n");
-	} else {
-	    if (udp_transfer(sockfd, fd, file.size, RECV, addr) < 0)
-		perror("[Error] Transfer failed\n");
-	}
+        if (protocol == TCP) {
+            if (tcp_transfer(sockfd, fd, file.size) < 0)
+                perror("[Error] Transfer failed\n");
+        } else {
+            if (udp_transfer(sockfd, fd, file.size, RECV, addr) < 0)
+                perror("[Error] Transfer failed\n");
+        }
         close(fd);
     }
 
