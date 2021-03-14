@@ -26,7 +26,4 @@ typedef struct {
 /* Buffer size */
 #define BUF_SIZE 512
 
-/* UDP starting header */
-#define UDP_START "hi"
-
 #endif /* UTILS_H */

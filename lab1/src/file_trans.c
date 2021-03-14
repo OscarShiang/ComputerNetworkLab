@@ -5,6 +5,7 @@
 #include <sys/time.h>
 #include <time.h>
 #include <sys/socket.h>
+#include <string.h>
 
 #include "file_trans.h"
 #include "utils.h"
@@ -63,11 +64,28 @@ ssize_t udp_transfer(int from, int to, size_t size, int type, struct sockaddr_in
     time_t t;
     struct tm tm;
 
+    char msg[4] = {0};
+    int msglen;
+    int inlen = 1;
+
+    int packetlen;
+
     struct timeval start, end;
 
     if (type == SEND) {
 	gettimeofday(&start, NULL);
 	while ((ret = read(from, buf, BUF_SIZE))) {
+	    // wait for ack
+	    msglen = recvfrom(to, msg, 4, 0, (struct sockaddr *)&addr, &inlen);
+	    msg[msglen] = '\0';
+	    if (strcmp(msg, UDP_ACK)) {
+		perror("[Error] failed to receive ack from client\n");
+		return -1;
+	    }
+	    
+	    // inform the clinet the length of the data
+	    sendto(to, &ret, sizeof(ret), 0, (struct sockaddr *)&addr, sizeof(struct sockaddr));
+
 	    ret = sendto(to, buf, ret, 0, (struct sockaddr *)&addr, sizeof(struct sockaddr_in));
 	    if (ret < 0)
 		return ret;
@@ -84,11 +102,19 @@ ssize_t udp_transfer(int from, int to, size_t size, int type, struct sockaddr_in
 		quarter++;
 	    }
 	}
+	// send terminate sign
+	sendto(to, &ret, sizeof(ret), 0, (struct sockaddr *)&addr, sizeof(struct sockaddr_in));
     } else {
 	// for RECV case
 	gettimeofday(&start, NULL);
-	int inlen = sizeof(struct sockaddr_in);
-	while ((ret = recvfrom(from, buf, BUF_SIZE, 0, (struct sockaddr *)&addr, &inlen))) {
+	while (1) {
+	    // send ack to the server
+	    ret = sendto(from, UDP_ACK, 4, 0, (struct sockaddr *)&addr, sizeof(struct sockaddr_in));
+	    msglen = recvfrom(from, &packetlen, sizeof(packetlen), 0, (struct sockaddr *)&addr, &inlen);
+	    if (!packetlen)
+		break;
+
+	    ret = recvfrom(from, buf, packetlen, 0, (struct sockaddr *)&addr, &inlen);
 	    ret = write(to, buf, ret);
 	    if (ret < 0)
 		return ret;
@@ -105,6 +131,7 @@ ssize_t udp_transfer(int from, int to, size_t size, int type, struct sockaddr_in
 		quarter++;
 	    }
 	}
+	DEBUG("transfer completed\n");
     }
     gettimeofday(&end, NULL);
     

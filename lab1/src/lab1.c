@@ -74,19 +74,6 @@ int main(int argc, char *argv[])
             exit(-1);
         }
 
-        // read the file size
-        struct stat statbuf;
-        int ret = stat(argv[5], &statbuf);
-        if (ret < 0) {
-            perror("[Error] File not found\n");
-            exit(-1);
-        }
-        file_info_t file = {
-            .size = statbuf.st_size,
-            .mode = statbuf.st_mode,
-        };
-        strcmp(file.name, argv[5]);
-
 	if (protocol == TCP) {
 	    DEBUG("listen from socket\n");
 	    if (listen(sockfd, 5) < 0) {
@@ -119,8 +106,22 @@ int main(int argc, char *argv[])
 		perror("[Error] Wrong starting header\n");
 		exit(-1);
 	    }
+	    clientfd = sockfd;
 	    DEBUG("Received client start\n");
 	}
+
+        // read the file size
+        struct stat statbuf;
+        int ret = stat(argv[5], &statbuf);
+        if (ret < 0) {
+            perror("[Error] File not found\n");
+            exit(-1);
+        }
+        file_info_t file = {
+            .size = statbuf.st_size,
+            .mode = statbuf.st_mode,
+        };
+        strcmp(file.name, argv[5]);
 
 	DEBUG("start to send the file\n");
 	int fd = open(argv[5], O_RDONLY);
@@ -133,9 +134,12 @@ int main(int argc, char *argv[])
 	    if (tcp_transfer(fd, clientfd, file.size) < 0)
 		perror("[Error] Transfer failed\n");
 	} else {
+	    // send file info
+	    sendto(clientfd, &file, sizeof(file), 0, (struct sockaddr *)&addr, sizeof(addr));
+
 	    // for UDP case
 	    DEBUG("start to transfer file by UDP\n");
-	    if (udp_transfer(fd, sockfd, file.size, SEND, addr) < 0)
+	    if (udp_transfer(fd, clientfd, file.size, SEND, addr) < 0)
 		perror("[Error] Transfer failed\n");
 	}
 	// close the fds
