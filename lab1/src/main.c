@@ -5,10 +5,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/socket.h>
-#include <sys/stat.h>
-#include <sys/time.h>
-#include <sys/types.h>
-#include <time.h>
 #include <unistd.h>
 
 #include "file_trans.h"
@@ -112,36 +108,27 @@ int main(int argc, char *argv[])
         }
 
         // read the file size
-        struct stat statbuf;
-        int ret = stat(argv[5], &statbuf);
-        if (ret < 0) {
-            perror("[Error] File not found\n");
-            exit(-1);
-        }
-        file_info_t file = {
-            .size = statbuf.st_size,
-            .mode = statbuf.st_mode,
-        };
-        strcmp(file.name, argv[5]);
+        file_info_t info;
+        read_info(&info, argv[5]);
 
         DEBUG("start to send the file\n");
         int fd = open(argv[5], O_RDONLY);
 
         if (protocol == TCP) {
             // send file info
-            write(clientfd, &file, sizeof(file));
+            write(clientfd, &info, sizeof(info));
 
             // send the data
-            if (tcp_transfer(fd, clientfd, file.size) < 0)
+            if (tcp_transfer(fd, clientfd, info.size) < 0)
                 perror("[Error] Transfer failed\n");
         } else {
             // send file info
-            sendto(clientfd, &file, sizeof(file), 0, (struct sockaddr *) &addr,
+            sendto(clientfd, &info, sizeof(info), 0, (struct sockaddr *) &addr,
                    sizeof(addr));
 
             // for UDP case
             DEBUG("start to transfer file by UDP\n");
-            if (udp_transfer(fd, clientfd, file.size, SEND, addr) < 0)
+            if (udp_transfer(fd, clientfd, info.size, SEND, addr) < 0)
                 perror("[Error] Transfer failed\n");
         }
         // close the fds
@@ -168,16 +155,16 @@ int main(int argc, char *argv[])
         }
 
         // get file info
-        file_info_t file;
+        file_info_t info;
         if (protocol == TCP) {
-            if (read(sockfd, &file, sizeof(file)) < 0) {
+            if (read(sockfd, &info, sizeof(info)) < 0) {
                 perror("[Error] Failed to receive the meta data\n");
                 exit(-1);
             }
         } else {
             int inlen = sizeof(struct sockaddr);
             DEBUG("wait for file info\n");
-            if (recvfrom(sockfd, &file, sizeof(file), 0,
+            if (recvfrom(sockfd, &info, sizeof(info), 0,
                          (struct sockaddr *) &addr, &inlen) < 0) {
                 perror("[Error] Failed to receive the meta data\n");
                 exit(-1);
@@ -185,9 +172,9 @@ int main(int argc, char *argv[])
         }
 
         // open file
-        int fd = open(argv[5], O_WRONLY | O_CREAT, 0755);
+        int fd = open(info.name, O_WRONLY | O_CREAT, 0755);
         if (fd < 0) {
-            perror("[Error] Fail to create the file\n");
+            perror("[Error] Fail to create\n");
             exit(-1);
         }
         DEBUG("create the file\n");
@@ -195,10 +182,10 @@ int main(int argc, char *argv[])
         // receive the data
         DEBUG("start to transfer the data\n");
         if (protocol == TCP) {
-            if (tcp_transfer(sockfd, fd, file.size) < 0)
+            if (tcp_transfer(sockfd, fd, info.size) < 0)
                 perror("[Error] Transfer failed\n");
         } else {
-            if (udp_transfer(sockfd, fd, file.size, RECV, addr) < 0)
+            if (udp_transfer(sockfd, fd, info.size, RECV, addr) < 0)
                 perror("[Error] Transfer failed\n");
         }
         close(fd);

@@ -26,9 +26,10 @@ enum { TCP, UDP, SEND, RECV };
 /* Information of a file */
 typedef struct {
     size_t size;
-    mode_t mode;
     char name[256];
 } file_info_t;
+
+int read_info(file_info_t *info, char *filename);
 
 /* Buffer size */
 #define BUF_SIZE 512
