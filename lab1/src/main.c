@@ -98,7 +98,6 @@ int main(int argc, char *argv[])
                 exit(-1);
             }
             buf[ret] = '\0';
-            printf("test: %s\n", buf);
             if (strcmp(buf, UDP_START)) {
                 perror("[Error] Wrong starting header\n");
                 exit(-1);

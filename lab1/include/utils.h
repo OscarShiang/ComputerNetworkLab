@@ -5,7 +5,7 @@
 #include <sys/types.h>
 
 /* Debug tool */
-#define debug_flag 1
+#define debug_flag 0
 #define DEBUG(txt, ...)                            \
     do {                                           \
         if (debug_flag) {                          \
