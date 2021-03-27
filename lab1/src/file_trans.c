@@ -30,26 +30,23 @@ ssize_t tcp_transfer(int from, int to, size_t size)
         bytes += ret;
 
         // print log
-        if (bytes > ((float) size) / 4 * quarter) {
+        while (bytes > ((float) size) / 4 * quarter) {
             t = time(NULL);
             tm = *localtime(&t);
-
-            printf("[Info] %-3d%% %d/%02d/%02d %02d:%02d:%02d\n", 25 * quarter,
-                   tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour,
-                   tm.tm_min, tm.tm_sec);
+            PROGRESS(25 * quarter, tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday,
+                     tm.tm_hour, tm.tm_min, tm.tm_sec);
             quarter++;
         }
     }
     gettimeofday(&end, NULL);
-    printf("[Info] %-3d%% %d/%02d/%02d %02d:%02d:%02d\n", 25 * quarter,
-           tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min,
-           tm.tm_sec);
+    PROGRESS(25 * quarter, tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday,
+             tm.tm_hour, tm.tm_min, tm.tm_sec);
     DEBUG("transfer completed\n");
 
-    printf("[Info] Total transfer time: %lu ms\n",
+    printf("Total transfer time: %lu ms\n",
            1000 * (end.tv_sec - start.tv_sec) +
                (end.tv_usec - start.tv_usec) / 1000);
-    printf("[Info] File size: %lu MB\n", bytes >> 20);
+    printf("File size: %lu MB\n", bytes >> 20);
 
     return bytes;
 }
@@ -98,13 +95,12 @@ ssize_t udp_transfer(int from,
             bytes += ret;
 
             // print log
-            if (bytes > ((float) size) / 4 * quarter) {
+            while (bytes > ((float) size) / 4 * quarter) {
                 t = time(NULL);
                 tm = *localtime(&t);
 
-                printf("[Info] %-3d%% %d/%02d/%02d %02d:%02d:%02d\n",
-                       25 * quarter, tm.tm_year + 1900, tm.tm_mon + 1,
-                       tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
+                PROGRESS(25 * quarter, tm.tm_year + 1900, tm.tm_mon + 1,
+                         tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
                 quarter++;
             }
         }
@@ -131,13 +127,12 @@ ssize_t udp_transfer(int from,
             bytes += ret;
 
             // print log
-            if (bytes > ((float) size) / 4 * quarter) {
+            while (bytes > ((float) size) / 4 * quarter) {
                 t = time(NULL);
                 tm = *localtime(&t);
 
-                printf("[Info] %-3d%% %d/%02d/%02d %02d:%02d:%02d\n",
-                       25 * quarter, tm.tm_year + 1900, tm.tm_mon + 1,
-                       tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
+                PROGRESS(25 * quarter, tm.tm_year + 1900, tm.tm_mon + 1,
+                         tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
                 quarter++;
             }
         }
@@ -145,15 +140,14 @@ ssize_t udp_transfer(int from,
     }
     gettimeofday(&end, NULL);
 
-    printf("[Info] %-3d%% %d/%02d/%02d %02d:%02d:%02d\n", 25 * quarter,
-           tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min,
-           tm.tm_sec);
+    PROGRESS(25 * quarter, tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday,
+             tm.tm_hour, tm.tm_min, tm.tm_sec);
     DEBUG("transfer completed\n");
 
-    printf("[Info] Total transfer time: %lu ms\n",
+    printf("Total transfer time: %lu ms\n",
            1000 * (end.tv_sec - start.tv_sec) +
                (end.tv_usec - start.tv_usec) / 1000);
-    printf("[Info] File size: %lu MB\n", bytes >> 20);
+    printf("File size: %lu MB\n", bytes >> 20);
 
     return bytes;
 }
