@@ -2,7 +2,7 @@ CC = gcc
 CFLAGS = -std=c11 -g -I./include
 
 TARGET = lab1
-OBJS = src/lab1.o src/file_trans.o
+OBJS = src/main.o src/file_trans.o
 
 all: $(TARGET)
 
