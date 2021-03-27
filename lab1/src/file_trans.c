@@ -148,6 +148,8 @@ ssize_t udp_transfer(int from,
            1000 * (end.tv_sec - start.tv_sec) +
                (end.tv_usec - start.tv_usec) / 1000);
     printf("File size: %lu MB\n", bytes >> 20);
+    if (type == RECV)
+        printf("Loss rate: %.2lf%%\n", ((double) size - bytes) / size * 100);
 
     return bytes;
 }
