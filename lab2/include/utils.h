@@ -24,9 +24,11 @@
 typedef struct {
     size_t size;
     char name[256];
+    mode_t mode;
 } file_info_t;
 
 int read_info(file_info_t *info, char *filename);
+void print_file_size(size_t size);
 
 /* Buffer size */
 #define BUF_SIZE 65536

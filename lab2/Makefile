@@ -1,10 +1,10 @@
-CC = gcc
+CC ?= gcc
 CFLAGS = -std=c11 -g -I./include
 
 TARGET = server client
 
-SERVER_OBJS = src/server.o
-CLIENT_OBJS = src/client.o
+SERVER_OBJS = src/server.o src/utils.o
+CLIENT_OBJS = src/client.o src/utils.o
 
 all: $(TARGET)
 
@@ -23,5 +23,5 @@ client: $(CLIENT_OBJS)
 	$(Q)$(CC) -o $@ $^ $(CFLAGS)
 
 clean:
-	$(RM) $(TARGET) $(OBJS)
+	$(RM) $(TARGET) $(SERVER_OBJS) $(CLIENT_OBJS)
 .PHONY: clean
