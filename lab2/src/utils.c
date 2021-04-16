@@ -16,7 +16,7 @@ int read_info(file_info_t *info, char *filename)
     }
 
     info->size = statbuf.st_size;
-    info->mode = statbuf.st_mode & 0x1f;  // only the least significant 9 bits
+    info->mode = statbuf.st_mode & 0x1ff;  // only the least significant 9 bits
 
     // trim the path before the filename
     int idx = 0;
