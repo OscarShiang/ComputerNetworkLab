@@ -66,6 +66,7 @@ int main(void)
 
     printf("OK\n");
 
+    printf("Reading datagram...");
     // receive the file_info
     file_info_t info;
     if (recvfrom(sockfd, &info, sizeof(info), 0, NULL, NULL) < 0) {
@@ -87,7 +88,7 @@ int main(void)
     int ret;
 
     DEBUG("start to receive data\n");
-    // TODO: write the file to the filename
+    // write the file to the filename
     while (1) {
         ret = recvfrom(sockfd, buf, BUF_SIZE, 0, NULL, NULL);
         if (ret < 0 || !strncmp(buf, UDP_ACK, 4))
@@ -96,6 +97,7 @@ int main(void)
         write(fd, buf, ret);
         recv_bytes += ret;
     }
+    printf("OK\n");
 
     print_file_size(recv_bytes);
 

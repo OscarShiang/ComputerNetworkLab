@@ -61,13 +61,13 @@ int main(int argc, char *argv[])
     file_info_t info;
     read_info(&info, argv[1]);
 
+    printf("Sending datagram packets...");
     DEBUG("send file info\n");
     sendto(sockfd, &info, sizeof(info), 0, (struct sockaddr *) &gaddr,
            sizeof(gaddr));
 
     // transfer the file
     DEBUG("transfer file from server\n");
-    printf("Sending datagram packets...");
     int ret;
     char buf[BUF_SIZE];
     while ((ret = read(fd, buf, BUF_SIZE))) {
