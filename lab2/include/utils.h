@@ -31,6 +31,8 @@ int read_info(file_info_t *info, char *filename);
 void print_file_size(size_t size);
 
 /* Buffer size */
-#define BUF_SIZE 65536
+#define BUF_SIZE 512
+
+#define UDP_ACK "ack"
 
 #endif /* UTILS_H */
