@@ -1,5 +1,5 @@
 CC ?= gcc
-CFLAGS = -std=c11 -g -I./include
+CFLAGS = -std=gnu11 -g -I./include
 
 TARGET = server client
 

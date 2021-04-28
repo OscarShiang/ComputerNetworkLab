@@ -26,7 +26,7 @@ int read_info(file_info_t *info, char *filename)
             break;
         }
     }
-    strncmp(info->name, &filename[idx], 256);
+    strncpy(info->name, &filename[idx], 256);
 
     return 0;
 }
@@ -42,7 +42,7 @@ static const char *storage_unit[] = {"GiB", "MiB", "KiB", "B"};
 
 void print_file_size(size_t size)
 {
-    int pow2 = sizeof(size_t) * 8 - __builtin_clzl(size);
+    int pow2 = 64 - __builtin_clzl(size);
 
     // choose proper measurement unit
     int idx;
